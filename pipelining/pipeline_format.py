@@ -74,8 +74,8 @@ def decode_line_prefix(line, prefix_size=-1,
                        delimiter=delimiter, decode_format=decode_format):
     line_parts = line.split(delimiter, prefix_size)
     return prefix_process(
-        prefix_size if prefix_size != -1 else len(line_parts),
-        line_parts, decode_format
+        prefix_size + 1 if prefix_size != -1 else len(line_parts),
+        line_parts, decode_format[:len(line_parts)]
     )
 
 

@@ -24,27 +24,34 @@ class TestFormat(unittest.TestCase):
             'encode'
         ]
 
-        line = encode_line([
-                'some',
-                'test',
-                'encode'
-            ],
-            encode_format=[
-                default_encoder,
-                default_encoder,
-                default_encoder
-            ]
+        decode_format = [
+            default_decoder,
+            default_decoder,
+            default_decoder
+        ]
+
+        encode_format = [
+            default_encoder,
+            default_encoder,
+            default_encoder
+        ]
+
+        line = encode_line(
+            example, encode_format=encode_format
         )
 
         decoded = decode_line(
-            line, decode_format=[
-                default_decoder,
-                default_decoder,
-                default_decoder
-            ]
+            line, decode_format=decode_format
         )
 
         self.assertEqual(decoded, example)
+
+        decoded = decode_line_prefix(
+            line, 1, decode_format=decode_format
+        )
+
+        self.assertEqual(decoded[0], example[0])
+        self.assertEqual(len(decoded), 2)
 
     def test_process(self):
         self.assertEqual(process([1, 2], [

@@ -1,0 +1,4 @@
+tornado==4.3
+futures>=2.2.0
+toro==1.0.1
+python-consul==0.6.0

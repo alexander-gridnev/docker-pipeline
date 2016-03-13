@@ -1,0 +1,19 @@
+FROM debian:7
+MAINTAINER Alexander Gridnev <gridnev.alexandr@gmail.com>
+
+RUN apt-get -y update && apt-get -y upgrade && apt-get -y clean
+RUN apt-get -y install ucspi-tcp python-dev python-setuptools netcat && apt-get -y clean
+RUN easy_install pip
+
+COPY requirements-worker.txt /requirements-worker.txt
+RUN pip install -r requirements-worker.txt
+
+COPY pipeline_format.py /pipeline_format.py
+COPY async_client.py /async_client.py
+COPY async_pipelining.py /async_pipelining.py
+COPY async_out.py /async_out.py
+COPY worker.py /worker.py
+COPY ./test.sh /test.sh
+
+ENTRYPOINT tcpserver 0.0.0.0 7000 /test.sh
+# ENTRYPOINT nc -l -p 7000 | /async_out.py

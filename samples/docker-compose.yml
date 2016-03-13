@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  worker:
+    image: worker
+    restart: always
+    ports:
+      - '7000:7000'
+    networks:
+      - pipeline-network
+    depends_on:
+      - consul
+      - registrator
+
+  end:
+    image: end
+    restart: always
+    expose:
+      - '7000'
+    networks:
+      - pipeline-network
+    depends_on:
+      - consul
+      - registrator
+
+  consul:
+    image: progrium/consul
+    ports:
+      - '8500:8500'
+      - '8400:8400'
+      - '8600:53/udp'
+    restart: always
+    hostname: node1
+    command: -server -bootstrap -ui-dir /ui
+    networks:
+      - pipeline-network
+
+  registrator:
+    image: gliderlabs/registrator:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+
+    command: -internal consul://consul:8500
+    networks:
+      - pipeline-network
+
+networks:
+  pipeline-network:

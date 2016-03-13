@@ -1,0 +1,7 @@
+FROM worker
+MAINTAINER Alexander Gridnev <gridnev.alexandr@gmail.com>
+
+COPY ./trivial_end.sh /trivial_end.sh
+ENV ENDLOG /log.txt
+
+ENTRYPOINT tcpserver 0.0.0.0 7000 /trivial_end.sh

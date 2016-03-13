@@ -1,0 +1,12 @@
+FROM centos:7
+MAINTAINER Alexander Gridnev <gridnev.alexandr@gmail.com>
+
+RUN yum -y update && yum -y upgrade && apt-get -y clean
+RUN yum -y install ucspi-tcp python-devel python-setuptools netcat && yum -y clean
+RUN easy_install pip
+
+COPY pipelining/requirements.txt /requirements.txt
+RUN pip install -r requirements.txt
+
+COPY pipelining /pipelining
+COPY discovering /discovering
