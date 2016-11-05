@@ -2,8 +2,8 @@
 from pipelining import run
 
 
-def job(args):
-    args[1] = len(args[1])
+def job(data):
+    return [data, len(data)]
 
 
 run(job)

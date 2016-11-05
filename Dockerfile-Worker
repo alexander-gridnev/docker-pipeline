@@ -1,0 +1,3 @@
+FROM docker-pipeline-base
+EXPOSE 7000
+CMD python pipelining/async_server.py | ${EXECUTABLE} | python -u pipelining/async_out.py

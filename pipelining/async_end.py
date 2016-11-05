@@ -7,9 +7,9 @@ import sys
 
 
 @coroutine
-def job(data):
-    sys.stderr.write('data: %s\n' % data)
-    raise Return([data, len(data)])
+def job(data, data_len):
+    sys.stderr.write('data: %s %s\n' % (data, data_len))
+    raise Return([data, data_len])
 
 
 run(job)

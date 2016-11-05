@@ -1,10 +1,10 @@
 import logging
+from copy import deepcopy
 
 from collections import defaultdict
 from tornado.gen import coroutine, sleep
 
-
-import consul.tornado
+from consul import tornado as consul_tornado
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -56,16 +56,16 @@ class ServiceWatch(object):
 
     def update_services(self, services):
         # remove services from cache
-        for k, v in self.__services_by_id.iteritems():
+        for k, v in deepcopy(self.__services_by_id).iteritems():
             if k not in services:
-                self.__services_dict.pop(k)
+                self.__services_by_id.pop(k)
                 self.__services[v['Service']].remove(v)
                 self.__remove_callbacks.call_all(k, v)
 
         # add services to cache
         for k, v in services.iteritems():
             if k not in self.__services_by_id:
-                self.__services_dict[k] = v
+                self.__services_by_id[k] = v
                 self.__services[v['Service']].append(v)
                 self.__add_callbacks.call_all(k, v)
 
@@ -77,8 +77,8 @@ class ServiceWatch(object):
 
     @coroutine
     def watch(self):
-        c = consul.tornado.Consul(**self.__consul_kwargs)
+        c = consul_tornado.Consul(**self.__consul_kwargs)
         self.update_services((yield c.agent.services()))
 
         # spawn watch coroutine
-        self.__watch()
+        self.__watch(c)

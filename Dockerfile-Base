@@ -1,12 +1,15 @@
 FROM centos:7
 MAINTAINER Alexander Gridnev <gridnev.alexandr@gmail.com>
 
-RUN yum -y update && yum -y upgrade && apt-get -y clean
-RUN yum -y install ucspi-tcp python-devel python-setuptools netcat && yum -y clean
+RUN yum -y update && yum -y upgrade
+RUN yum -y install ucspi-tcp python-devel python-setuptools netcat nmap-ncat
 RUN easy_install pip
 
 COPY pipelining/requirements.txt /requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && mkdir /pipeline && touch /pipeline/__init__.py
 
-COPY pipelining /pipelining
-COPY discovering /discovering
+WORKDIR /pipeline
+ENV PYTHONPATH=/pipeline
+
+COPY pipelining /pipeline/pipelining
+COPY discovering /pipeline/discovering

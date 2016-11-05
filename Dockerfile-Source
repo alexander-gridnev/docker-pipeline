@@ -1,0 +1,2 @@
+FROM docker-pipeline-base
+CMD ${EXECUTABLE} | python -u pipelining/async_out.py

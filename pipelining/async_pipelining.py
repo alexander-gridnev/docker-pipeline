@@ -22,8 +22,8 @@ def work_cycle(job):
             break
 
         parts = decode_line(line)
-        yield job(parts)
-        yield out.write(encode_line(parts))
+        new_parts = yield job(*parts[1:])
+        yield out.write(encode_line([parts[0]] + new_parts))
 
 
 def run(job):

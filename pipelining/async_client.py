@@ -1,14 +1,17 @@
 import random
 import logging
+import socket
 
 from pipeline_format import encode_line_prefix, decode_line_prefix
 from async_pipelining import AsyncStream
 
-from discovering.consul import ServiceWatch
+from discovering.consul_watcher import ServiceWatch
 from tornado.tcpclient import TCPClient
 from tornado.ioloop import IOLoop
 from tornado.iostream import StreamClosedError
 from tornado.gen import coroutine
+
+import sys
 
 
 logging.basicConfig()
@@ -19,14 +22,15 @@ class ClientApp(object):
     def __init__(self):
         self.__services = ServiceWatch(host='consul')
 
-        self.__services.add_callbacks.add(self.service_added)
-        self.__services.add_callbacks.add(self.service_removed)
+        self.__services.add_callbacks.register(self.service_added)
+        self.__services.remove_callbacks.register(self.service_removed)
 
         self.__clients = {}
         self.__reconnection = list()
 
     def service_removed(self, service_id, data):
-        self.__reconnection.remove(data)
+        if data in self.__reconnection:
+            self.__reconnection.remove(data)
         self.__clients.pop(service_id, None)
 
     def service_added(self, service_id, data):
@@ -35,7 +39,13 @@ class ClientApp(object):
     @coroutine
     def refresh_connections(self, service):
         streams_futures = [
-            (TCPClient().connect(source['ID'].split(':')[1], source['Port']), source)
+            (
+                TCPClient().connect(
+                    socket.gethostbyname(source['ID'].split(':')[1]),
+                    source['Port']
+                ),
+                source
+            )
             for source in self.__reconnection if source['Service'] == service
         ]
 
@@ -59,18 +69,23 @@ class ClientApp(object):
             except StreamClosedError:
                 break
 
-            route, other = decode_line_prefix(line, 1)
+            parts = decode_line_prefix(line, 1)
+            route = parts[0]
 
-            route['current'] += 1
             next_service = route['routing'][route['current']]
+            route['current'] += 1
 
-            new_data = encode_line_prefix(route, other)
+            new_data = encode_line_prefix(parts, 1)
 
             yield self.refresh_connections(next_service)
 
-            service = random.choice(self.__services[next_service])
-            client = self.__clients[service['ID']]
+            service = random.choice(self.__services.services[next_service])
+
+            print(next_service, service)
+
             try:
+                client = self.__clients[service['ID']]
+                sys.stderr.write(new_data)
                 yield client.write(new_data)
             except Exception as e:
                 log.exception(e)

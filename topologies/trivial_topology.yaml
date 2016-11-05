@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+  source:
+    environment:
+      EXECUTABLE: "python -u pipelining/simple_test_source.py"
+    image: docker-pipeline-source
+    restart: always
+    networks:
+      - pipeline-network
+
+  docker-pipeline-worker:
+    environment:
+      EXECUTABLE: "python -u pipelining/async_worker.py"
+    image: docker-pipeline-worker
+    restart: always
+    networks:
+      - pipeline-network
+
+  docker-pipeline-end:
+    environment:
+      EXECUTABLE: "python -u pipelining/async_end.py"
+    image: docker-pipeline-end
+    restart: always
+    networks:
+      - pipeline-network
